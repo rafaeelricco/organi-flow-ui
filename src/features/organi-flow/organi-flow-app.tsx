@@ -157,14 +157,9 @@ export const OrgChartApp: React.FC = () => {
   };
 
   return (
-    <div className="p-8">
       <div 
-        className="flex justify-center overflow-auto min-h-screen min-w-full bg-white"
+        className="flex justify-center overflow-auto min-h-screen min-w-full bg-white p-12"
         ref={containerRef}
-        style={{
-          padding: '3rem',
-          backgroundColor: '#ffffff',
-        }}
       >
         {isLoading ? (
           <React.Fragment>
@@ -180,6 +175,5 @@ export const OrgChartApp: React.FC = () => {
           </React.Fragment>
         )}
       </div>
-    </div>
   );
 };
