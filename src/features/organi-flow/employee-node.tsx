@@ -25,15 +25,18 @@ export const EmployeeNode: React.FC<EmployeeNodeProps> = ({ employee }) => {
     <div className="flex flex-col items-center relative h-fit">
       <div 
         className="slot relative z-10"
-        data-swapy-slot={`slot-${employee.id}`}
+        data-swapy-slot={`emp-${employee.id}`}
+        key={employee.id}
       >
         <div
-          data-swapy-item={`slot-${employee.id}`}
+          data-swapy-item={`emp-${employee.id}`}
           className="relative"
+          key={employee.id}
         >
           <Card className={cn(
             "w-56 hover:shadow-lg transition-all bg-white group",
-            holding.isOpen && "border border-gray-500"
+            holding.isOpen && "border border-gray-500",
+            "cursor-grab active:cursor-grabbing"
           )}>
             <CardContent className="p-3 py-2">
               <div className="flex items-center gap-2">

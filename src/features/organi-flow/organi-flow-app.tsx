@@ -12,36 +12,28 @@ import useSWR from 'swr';
 import { EmployeeNodeSkeleton } from './employee-node-skeleton';
 
 const employeesData: EmployeeEntity[] = [
-  // Nível 1 - CEO
-  { id: 1, name: "John Smith", title: "CEO", manager_id: null },
-  
-  // Nível 2 - Diretores reportando ao CEO
-  { id: 2, name: "Sarah Johnson", title: "CTO", manager_id: 1 },
-  { id: 3, name: "David Wilson", title: "Product Director", manager_id: 1 },
-  { id: 4, name: "Lisa Brown", title: "HR Director", manager_id: 1 },
-  
-  // Nível 3 - Gerentes e Líderes
-  { id: 5, name: "Michael Chen", title: "Engineering Manager", manager_id: 2 },
-  { id: 6, name: "Peter Anderson", title: "Product Manager", manager_id: 3 },
-  { id: 7, name: "Rachel Torres", title: "HR Manager", manager_id: 4 },
-  
-  // Nível 4 - Líderes Técnicos e Especialistas
-  { id: 8, name: "James Taylor", title: "Frontend Lead", manager_id: 5 },
-  { id: 9, name: "Maria Garcia", title: "Backend Lead", manager_id: 5 },
-  { id: 10, name: "Thomas Wright", title: "UX Designer", manager_id: 6 },
-  { id: 11, name: "Amanda White", title: "Senior UX Designer", manager_id: 6 },
-  { id: 12, name: "Sophie Chen", title: "Senior HR Specialist", manager_id: 7 },
-  
-  // Nível 5 - Profissionais
-  { id: 13, name: "Robert Johnson", title: "Junior UX Designer", manager_id: 11 },
-  { id: 14, name: "Emily Davis", title: "Senior Developer", manager_id: 8 },
-  { id: 15, name: "Sam Smith", title: "Senior Developer", manager_id: 9 },
-  { id: 16, name: "Alex Thompson", title: "Junior Developer", manager_id: 14 },
-  { id: 17, name: "Mark Wilson", title: "HR Analyst", manager_id: 12 },
-  { id: 18, name: "Julia Santos", title: "Recruitment Specialist", manager_id: 12 },
-  { id: 19, name: "Daniel Lee", title: "Junior Developer", manager_id: 18 },
-  { id: 20, name: "Isabella Martinez", title: "Senior Developer", manager_id: 15 },
-  { id: 21, name: "Oliver Brown", title: "Senior Developer", manager_id: 13 },
+  { "id": 1, "name": "John Smith", "title": "CEO", "manager_id": null },
+  { "id": 2, "name": "Sarah Johnson", "title": "CTO", "manager_id": 1 },
+  { "id": 3, "name": "David Wilson", "title": "Product Director", "manager_id": 1 },
+  { "id": 4, "name": "Lisa Brown", "title": "HR Director", "manager_id": 1 },
+  { "id": 5, "name": "Michael Chen", "title": "Engineering Manager", "manager_id": 2 },
+  { "id": 6, "name": "Peter Anderson", "title": "Product Manager", "manager_id": 3 },
+  { "id": 7, "name": "Rachel Torres", "title": "HR Manager", "manager_id": 4 },
+  { "id": 8, "name": "James Taylor", "title": "Frontend Lead", "manager_id": 5 },
+  { "id": 9, "name": "Maria Garcia", "title": "Backend Lead", "manager_id": 5 },
+  { "id": 10, "name": "Thomas Wright", "title": "UX Designer", "manager_id": 6 },
+  { "id": 11, "name": "Amanda White", "title": "Senior UX Designer", "manager_id": 6 },
+  { "id": 12, "name": "Sophie Chen", "title": "Senior HR Specialist", "manager_id": 7 },
+  { "id": 13, "name": "Robert Johnson", "title": "Junior UX Designer", "manager_id": 11 },
+  { "id": 14, "name": "Emily Davis", "title": "Senior Developer", "manager_id": 12 },
+  { "id": 15, "name": "Sam Smith", "title": "Senior Developer", "manager_id": 9 },
+  { "id": 16, "name": "Alex Thompson", "title": "Junior Developer", "manager_id": 14 },
+  { "id": 17, "name": "Mark Wilson", "title": "HR Analyst", "manager_id": 12 },
+  { "id": 18, "name": "Julia Santos", "title": "Recruitment Specialist", "manager_id": 12 },
+  { "id": 19, "name": "Daniel Lee", "title": "Junior Developer", "manager_id": 18 },
+  { "id": 20, "name": "Isabella Martinez", "title": "Senior Developer", "manager_id": 15 },
+  { "id": 21, "name": "Oliver Brown", "title": "Senior Developer", "manager_id": 13 },
+  { "id": 22, "name": "Ava Johnson", "title": "Senior Developer", "manager_id": 17 },
 ];
 
 const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
@@ -80,13 +72,9 @@ const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
 };
 
 export const OrgChartApp: React.FC = () => {
-  const { data: apiData, error, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher, {
-    refreshInterval: 1000,
-  })
+  const { data: apiData, error, isLoading, mutate } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher)
 
   const mockEmployees = buildHierarchy(employeesData);
-
-  const [expandedNodes, setExpandedNodes] = React.useState<Set<number>>(new Set([1]));
 
   const [employees, setEmployees] = React.useState<EmployeeEntity[]>([]);
 
@@ -110,50 +98,111 @@ export const OrgChartApp: React.FC = () => {
       });
 
       swapyRef.current.onSwapEnd((event) => {
-        if (!event.hasChanged) return;
+        (async () => {
+          if (!event.hasChanged) return;
 
-        const slotItemPairs = event.slotItemMap.asArray;
-        
-        const draggedPair = slotItemPairs.find(pair => pair.item.startsWith('emp-'));
-        if (!draggedPair) return;
+          const slotItemPairs = event.slotItemMap.asArray;
+          
+          const draggedPair = slotItemPairs.find(pair => pair.item.startsWith('emp-'));
+          if (!draggedPair) return;
 
-        const draggedId = draggedPair.item.replace(/emp-/, '');
-        const newManagerId = draggedPair.slot.replace(/emp-/, '');
-        
-        const draggedEmployee = employeesData.find(emp => emp.id === Number(draggedId));
-        const targetEmployee = employeesData.find(emp => emp.id === Number(newManagerId));
+          const draggedId = draggedPair.item.replace(/emp-/, '');
+          const newManagerId = draggedPair.slot.replace(/emp-/, '');
+          
+          const draggedEmployee = employees.find(emp => emp.id === Number(draggedId));
+          const targetEmployee = employees.find(emp => emp.id === Number(newManagerId));
 
-        if (!draggedEmployee || !targetEmployee) return;
+          if (!draggedEmployee || !targetEmployee) return;
 
-        if (draggedEmployee.id === targetEmployee.id || draggedEmployee.manager_id === targetEmployee.id) {
-          toast.error('Invalid drop target: Cannot drop on self or current manager');
-          return;
-        }
+          if (
+            draggedEmployee.id === targetEmployee.id ||
+            draggedEmployee.manager_id === targetEmployee.id
+          ) {
+            toast.error('Invalid drop target: Cannot drop on self or current manager');
+            return;
+          }
 
-        if (isSubordinate(draggedEmployee.id, targetEmployee.id)) {
-          toast.error('Invalid drop target: Cannot move manager under their subordinate');
-          return;
-        }
+          if (isSubordinate(draggedEmployee.id, targetEmployee.id)) {
+            toast.error('Invalid drop target: Cannot move manager under their subordinate');
+            return;
+          }
 
-        const index = employeesData.findIndex(emp => emp.id === draggedEmployee.id);
-        if (index !== -1) {
-          employeesData[index] = { ...draggedEmployee, manager_id: targetEmployee.id };
-          toast.success(`Updated ${draggedEmployee.name}'s manager to ${targetEmployee.name}`);
-          setExpandedNodes(new Set(expandedNodes));
-        }
+          const index = employees.findIndex(emp => emp.id === draggedEmployee.id);
+          if (index !== -1) {
+            const previousState = [...employees];
+            
+            const updatedEmployees = [...employees];
+            updatedEmployees[index] = {
+              ...draggedEmployee,
+              manager_id: targetEmployee.id
+            };
+            setEmployees(updatedEmployees);
+
+            try {
+              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-manager`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  employee_id: draggedEmployee.id, 
+                  manager_id: targetEmployee.id 
+                }),
+              });
+
+              if (!response.ok) {
+                throw new Error('Falha na atualização');
+              }
+
+              await mutate();
+              
+            } catch (error) {
+              setEmployees(previousState);
+              toast.error('Falha na atualização - revertendo alteração');
+            }
+          }
+        })();
       });
     }
     
     return () => {
       swapyRef.current?.destroy();
     }
-  }, [expandedNodes]);
+  }, [employees, mutate]);
 
   const isSubordinate = (managerId: number, targetId: number): boolean => {
-    const manager = employeesData.find(emp => emp.id === managerId);
-    return manager?.subordinates?.some(emp => 
-      emp.id === targetId || isSubordinate(emp.id, targetId)
-    ) ?? false;
+    const employeeMap = new Map<number, EmployeeEntity>();
+    employees.forEach(emp => employeeMap.set(emp.id, emp));
+
+    const checkSubordinates = (currentId: number): boolean => {
+      const current = employeeMap.get(currentId);
+      if (!current) return false;
+      if (current.id === targetId) return true;
+      const subs = employees.filter(emp => emp.manager_id === currentId);
+      return subs.some(sub => sub.id === targetId || checkSubordinates(sub.id));
+    };
+
+    return checkSubordinates(managerId);
+  };
+
+  const updateEmployeeManager = async (employeeId: number, managerId: number) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-manager`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employee_id: employeeId, manager_id: managerId }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast.error(`Erro ao atualizar: ${errorData.detail || errorData.message}`);
+        return false;
+      }
+
+      toast.success('Atualizado com sucesso!');
+      return true;
+    } catch (error) {
+      toast.error('Falha na requisição para atualizar o manager');
+      return false;
+    }
   };
 
   return (
