@@ -92,6 +92,12 @@ export const OrgChartApp: React.FC = () => {
           return;
         }
 
+        // Prevent dropping if target is a subordinate of the dragged employee
+        if (isSubordinate(draggedEmployee.id, targetEmployee.id)) {
+          toast.error('Invalid drop target: Cannot move manager under their subordinate');
+          return;
+        }
+
         // Update the manager_id
         const index = employeesData.findIndex(emp => emp.id === draggedEmployee.id);
         if (index !== -1) {

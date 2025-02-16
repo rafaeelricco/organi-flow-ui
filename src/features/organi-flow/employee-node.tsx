@@ -12,7 +12,8 @@ export const EmployeeNode: React.FC<{ employee: EmployeeEntity }> = ({ employee 
     const childSpacing = 40;
     
     const totalChildrenWidth = hasSubordinates
-      ? (employee.subordinates?.length || 0) * (childWidth + childSpacing)
+      ? (employee.subordinates?.length || 0) * childWidth + 
+        ((employee.subordinates?.length || 0) - 1) * childSpacing
       : 0;
 
     return (
@@ -57,9 +58,10 @@ export const EmployeeNode: React.FC<{ employee: EmployeeEntity }> = ({ employee 
             <div className="h-6 border-l border-gray-200 absolute top-0 left-1/2 -translate-x-1/2"></div>
             <div className="w-full border-t border-gray-200 absolute top-6"></div>
             <div 
-              className="flex justify-around w-full absolute top-6"
+              className="flex justify-start w-full absolute top-6"
               style={{ 
                 gap: `${childSpacing}px`,
+                width: `${totalChildrenWidth}px`,
               }}
             >
               {employee.subordinates?.map((subordinate) => (
