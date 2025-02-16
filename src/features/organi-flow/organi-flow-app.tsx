@@ -4,19 +4,10 @@ import * as React from 'react';
 
 import { EmployeeNode } from '@/features/organi-flow/employee-node';
 import { useDisclosure } from '@/hooks/useDisclosure';
+import { EmployeeEntity } from '@/types/employee';
 import { toast } from 'sonner';
 import { createSwapy, Swapy } from 'swapy';
 
-interface EmployeeEntity {
-   id: number
-   name: string
-   title: string
-   manager_id: number | null
-   subordinates?: EmployeeEntity[]
-   manager?: EmployeeEntity
-}
-
-// Mock data
 const employeesData: EmployeeEntity[] = [
   { id: 1, name: "John Smith", title: "CEO", manager_id: null },
   { id: 2, name: "Sarah Johnson", title: "CTO", manager_id: 1 },
@@ -59,11 +50,10 @@ const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
   return rootEmployees;
 };
 
-export const OrgChart: React.FC = () => {
+export const OrgChartApp: React.FC = () => {
   const loading = useDisclosure()
 
   const [expandedNodes, setExpandedNodes] = React.useState<Set<number>>(new Set([1]));
-  const [draggedEmployee, setDraggedEmployee] = React.useState<EmployeeEntity | null>(null);
 
   const hierarchicalEmployees = buildHierarchy(employeesData);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -123,97 +113,6 @@ export const OrgChart: React.FC = () => {
     return manager?.subordinates?.some(emp => 
       emp.id === targetId || isSubordinate(emp.id, targetId)
     ) ?? false;
-  };
-
-  const toggleNode = (employeeId: number) => {
-    const newExpanded = new Set(expandedNodes);
-    if (newExpanded.has(employeeId)) {
-      newExpanded.delete(employeeId);
-    } else {
-      newExpanded.add(employeeId);
-    }
-    setExpandedNodes(newExpanded);
-  };
-
-  const handleDragStart = (e: React.DragEvent, employee: EmployeeEntity) => {
-    setDraggedEmployee(employee);
-    e.dataTransfer.setData('text/plain', employee.id.toString());
-    // Create a ghost image
-    const ghost = document.createElement('div');
-    ghost.classList.add('bg-white', 'p-2', 'rounded', 'shadow');
-    ghost.textContent = employee.name;
-    document.body.appendChild(ghost);
-    e.dataTransfer.setDragImage(ghost, 0, 0);
-    setTimeout(() => document.body.removeChild(ghost), 0);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.currentTarget.classList.add('bg-blue-50');
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.currentTarget.classList.remove('bg-blue-50');
-  };
-
-  const showStatusMessage = (message: string) => {
-    if (loading) {
-      toast.loading(message);
-    } else {
-      toast.success(message);
-    }
-  };
-
-  const handleDrop = async (e: React.DragEvent, newManager: EmployeeEntity) => {
-    e.preventDefault();
-    e.currentTarget.classList.remove('bg-blue-50');
-    
-    if (!draggedEmployee) return;
-
-    // Prevent dropping on self or current manager
-    if (draggedEmployee.id === newManager.id || draggedEmployee.manager_id === newManager.id) {
-      toast.error('Invalid drop target: Cannot drop on self or current manager');
-      return;
-    }
-
-    // Prevent dropping on subordinates
-    const getAllSubordinateIds = (emp: EmployeeEntity): number[] => {
-      const ids: number[] = [];
-      if (emp.subordinates) {
-        emp.subordinates.forEach(sub => {
-          ids.push(sub.id);
-          ids.push(...getAllSubordinateIds(sub));
-        });
-      }
-      return ids;
-    };
-
-    if (getAllSubordinateIds(draggedEmployee).includes(newManager.id)) {
-      toast.error('Invalid drop target: Cannot drop on subordinate');
-      return;
-    }
-
-    loading.open()
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update the data
-      const updatedEmployee = { ...draggedEmployee, manager_id: newManager.id };
-      const index = employeesData.findIndex(emp => emp.id === draggedEmployee.id);
-      if (index !== -1) {
-        employeesData[index] = updatedEmployee;
-      }
-
-      toast.success(`Updated ${draggedEmployee.name}'s manager to ${newManager.name}`);
-      // Expand the new manager's node
-      setExpandedNodes(prev => new Set([...prev, newManager.id]));
-    } catch (error) {
-      toast.error('Error updating manager');
-    } finally {
-      loading.close()
-      setDraggedEmployee(null);
-    }
   };
 
   return (
