@@ -2,27 +2,31 @@
 
 import * as React from 'react';
 
-import { EmployeeNode } from '@/features/organi-flow/employee-node';
 import { EmployeeEntity } from '@/types/employee';
 import { toast } from 'sonner';
 import { createSwapy, Swapy } from 'swapy';
+import { EmployeeNodeSkeleton } from './employee-node-skeleton';
+
+import { fetcher } from '@/lib/fetcher';
+import useSWR from 'swr';
+import { EmployeeNode } from './employee-node';
 
 const employeesData: EmployeeEntity[] = [
   { id: 1, name: "John Smith", title: "CEO", manager_id: null },
-  { id: 5, name: "David Wilson", title: "Product Director", manager_id: 1 },
-  { id: 12, name: "Peter Anderson", title: "Product Manager", manager_id: 5 },
-  { id: 3, name: "Michael Chen", title: "Engineering Director", manager_id: 2 },
-  { id: 4, name: "Emily Davis", title: "Senior Developer", manager_id: 3 },
-  { id: 2, name: "Sarah Johnson", title: "CTO", manager_id: 1 },
-  { id: 6, name: "Lisa Brown", title: "HR Director", manager_id: 1 },
-  { id: 13, name: "Jessica Miller", title: "HR Manager", manager_id: 6 },
-  { id: 4, name: "Emily Davis", title: "Senior Developer", manager_id: 3 },
-  { id: 11, name: "Alex Thompson", title: "Junior Developer", manager_id: 4 },
-  { id: 5, name: "David Wilson", title: "Product Director", manager_id: 1 },
-  { id: 7, name: "James Taylor", title: "Frontend Lead", manager_id: 3 },
-  { id: 8, name: "Maria Garcia", title: "Backend Lead", manager_id: 3 },
-  { id: 9, name: "Robert Kim", title: "DevOps Engineer", manager_id: 8 },
-  { id: 10, name: "Amanda White", title: "UX Designer", manager_id: 7 },
+  { id: 2, name: "David Wilson", title: "Product Director", manager_id: 1 },
+  { id: 3, name: "Peter Anderson", title: "Product Manager", manager_id: 5 },
+  { id: 4, name: "Michael Chen", title: "Engineering Director", manager_id: 2 },
+  { id: 5, name: "Emily Davis", title: "Senior Developer", manager_id: 3 },
+  { id: 6, name: "Sarah Johnson", title: "CTO", manager_id: 1 },
+  { id: 7, name: "Lisa Brown", title: "HR Director", manager_id: 1 },
+  { id: 8, name: "Jessica Miller", title: "HR Manager", manager_id: 6 },
+  { id: 9, name: "Emily Davis", title: "Senior Developer", manager_id: 3 },
+  { id: 10, name: "Alex Thompson", title: "Junior Developer", manager_id: 4 },
+  { id: 11, name: "David Wilson", title: "Product Director", manager_id: 1 },
+  { id: 12, name: "James Taylor", title: "Frontend Lead", manager_id: 3 },
+  { id: 13, name: "Maria Garcia", title: "Backend Lead", manager_id: 3 },
+  { id: 14, name: "Robert Kim", title: "DevOps Engineer", manager_id: 8 },
+  { id: 15, name: "Amanda White", title: "UX Designer", manager_id: 7 },
 ];
 
 const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
@@ -50,10 +54,12 @@ const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
 };
 
 export const OrgChartApp: React.FC = () => {
+  const { data: apiData, error, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher)
 
   const [expandedNodes, setExpandedNodes] = React.useState<Set<number>>(new Set([1]));
 
-  const hierarchicalEmployees = buildHierarchy(employeesData);
+  const mockEmployees = buildHierarchy(employeesData);
+
   const containerRef = React.useRef<HTMLDivElement>(null);
   const swapyRef = React.useRef<Swapy | null>(null);
 
@@ -123,9 +129,19 @@ export const OrgChartApp: React.FC = () => {
           backgroundColor: '#ffffff',
         }}
       >
-        {hierarchicalEmployees.map(employee => (
-          <EmployeeNode key={employee.id} employee={employee} />
-        ))}
+        {!isLoading ? (
+          <React.Fragment>
+            {mockEmployees.map(employee => (
+              <EmployeeNodeSkeleton key={employee.id} employee={employee} />
+            ))}
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            {apiData?.map(employee => (
+              <EmployeeNode key={employee.id} employee={employee} />
+            ))}
+          </React.Fragment>
+        )}
       </div>
     </div>
   );
