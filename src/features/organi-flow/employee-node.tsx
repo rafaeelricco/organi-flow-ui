@@ -8,17 +8,25 @@ import { GripVertical } from 'lucide-react';
 
 export const EmployeeNode: React.FC<{ employee: EmployeeEntity }> = ({ employee }) => {
     const hasSubordinates = employee.subordinates && employee.subordinates.length > 0;
+    const childWidth = 300; // Largura base para cada filho
+    const childSpacing = 20; // Espaçamento entre filhos
+    
+    // Calcula a largura total necessária para os subordinados
+    const totalChildrenWidth = hasSubordinates
+      ? (employee.subordinates?.length || 0) * (childWidth + childSpacing)
+      : 0;
+
     return (
       <div className="flex flex-col items-center">
         <div 
-          className="slot"
+          className="slot relative"
           data-swapy-slot={`slot-${employee.id}`}
         >
           <div
             data-swapy-item={`slot-${employee.id}`}
             className="relative"
           >
-            <Card className={`w-64 mb-4 hover:shadow-lg transition-all`}>
+            <Card className="w-64 mb-8 hover:shadow-lg transition-all">
               <CardContent className="pt-4">
                 <div className="flex items-center gap-2">
                   <div className="text-gray-400 cursor-grab active:cursor-grabbing" data-swapy-handle>
@@ -39,12 +47,29 @@ export const EmployeeNode: React.FC<{ employee: EmployeeEntity }> = ({ employee 
           </div>
         </div>
         {hasSubordinates && (
-          <div className="relative pt-4">
-            <div className="absolute top-0 left-1/2 h-4 w-px bg-gray-300" />
-            <div className="flex gap-8">
+          <div 
+            className="flex flex-col items-center"
+            style={{ 
+              width: `${totalChildrenWidth}px`,
+              minWidth: '100%'
+            }}
+          >
+            <div className="h-8 border-l-2 border-gray-300"></div>
+            <div className="w-full border-t-2 border-gray-300"></div>
+            <div 
+              className="flex justify-around w-full px-8"
+              style={{ 
+                gap: `${childSpacing}px`,
+                marginTop: '-2px'
+              }}
+            >
               {employee.subordinates?.map((subordinate) => (
-                <div key={subordinate.id} className="relative">
-                  <div className="absolute top-0 left-1/2 h-4 w-px bg-gray-300" />
+                <div 
+                  key={subordinate.id} 
+                  className="flex flex-col items-center"
+                  style={{ minWidth: `${childWidth}px` }}
+                >
+                  <div className="h-8 border-l-2 border-gray-300"></div>
                   <EmployeeNode employee={subordinate} />
                 </div>
               ))}
