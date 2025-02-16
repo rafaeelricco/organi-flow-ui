@@ -13,8 +13,8 @@ export const EmployeeNode: React.FC<EmployeeNodeProps> = ({ employee }) => {
   const holding = useDisclosure()
 
   const hasSubordinates = employee.subordinates && employee.subordinates.length > 0;
-  const childWidth = 300;
-  const childSpacing = 100;
+  const childWidth = 250;
+  const childSpacing = 80;
   
   const totalChildrenWidth = hasSubordinates
     ? (employee.subordinates?.length || 0) * childWidth + 
@@ -70,16 +70,16 @@ export const EmployeeNode: React.FC<EmployeeNodeProps> = ({ employee }) => {
             zIndex: 1
           }}
         >
-          <div className="h-6 border-l border-gray-200 absolute top-0 left-1/2 -translate-x-1/2"></div>
+          <div className="h-12 border-l border-gray-200 absolute top-0 left-1/2 -translate-x-1/2"></div>
           <div 
-            className="border-t border-gray-200 absolute top-6"
+            className="border-t border-gray-200 absolute top-12"
             style={{ 
               left: `${childWidth / 2}px`,
               width: totalChildrenWidth > childWidth ? `${totalChildrenWidth - childWidth}px` : '0px'
             }}
           ></div>
           <div 
-            className="flex justify-start absolute top-6"
+            className="flex justify-start absolute top-12"
             style={{ gap: `${childSpacing}px`, width: `${totalChildrenWidth}px` }}
           >
             {employee.subordinates?.map((subordinate) => (
@@ -88,8 +88,8 @@ export const EmployeeNode: React.FC<EmployeeNodeProps> = ({ employee }) => {
                 className="flex flex-col items-center relative" 
                 style={{ minWidth: `${childWidth}px` }}
               >
-                <div className="h-16 border-l border-gray-200 absolute top-0 left-1/2 -translate-x-1/2"></div>
-                <div className="pt-16">
+                <div className="h-12 border-l border-gray-200 absolute top-0 left-1/2 -translate-x-1/2"></div>
+                <div className="pt-12">
                   <EmployeeNode employee={subordinate} />
                 </div>
               </div>
