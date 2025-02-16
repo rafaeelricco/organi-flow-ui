@@ -9,6 +9,7 @@ import { createSwapy, Swapy } from 'swapy';
 import { EmployeeNode } from './employee-node';
 
 import useSWR from 'swr';
+import { EmployeeNodeSkeleton } from './employee-node-skeleton';
 
 const employeesData: EmployeeEntity[] = [
   // Nível 1 - CEO
@@ -79,11 +80,22 @@ const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
 };
 
 export const OrgChartApp: React.FC = () => {
-  const { data: apiData, error, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher)
+  const { data: apiData, error, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher, {
+    refreshInterval: 1000,
+  })
+
+  const mockEmployees = buildHierarchy(employeesData);
 
   const [expandedNodes, setExpandedNodes] = React.useState<Set<number>>(new Set([1]));
 
-  const mockEmployees = buildHierarchy(employeesData);
+  const [employees, setEmployees] = React.useState<EmployeeEntity[]>([]);
+
+  React.useEffect(() => {
+    if (apiData) {
+      const sortedEmployees = buildHierarchy(apiData);
+      setEmployees(sortedEmployees);
+    }
+  },[apiData])
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const swapyRef = React.useRef<Swapy | null>(null);
@@ -154,15 +166,15 @@ export const OrgChartApp: React.FC = () => {
           backgroundColor: '#ffffff',
         }}
       >
-        {!isLoading ? (
+        {isLoading ? (
           <React.Fragment>
             {mockEmployees.map(employee => (
-              <EmployeeNode key={employee.id} employee={employee} />
+              <EmployeeNodeSkeleton key={employee.id} employee={employee} />
             ))}
           </React.Fragment>
         ) : (
           <React.Fragment>
-            {apiData?.map(employee => (
+            {employees?.map(employee => (
               <EmployeeNode key={employee.id} employee={employee} />
             ))}
           </React.Fragment>

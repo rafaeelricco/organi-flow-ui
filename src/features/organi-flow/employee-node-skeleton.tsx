@@ -14,8 +14,8 @@ export const EmployeeNodeSkeleton: React.FC<EmployeeNodeProps> = ({ employee }) 
   const holding = useDisclosure()
 
   const hasSubordinates = employee.subordinates && employee.subordinates.length > 0;
-  const childWidth = 250;
-  const childSpacing = 80;
+  const childWidth = 200;
+  const childSpacing = 300;
   
   const totalChildrenWidth = hasSubordinates
     ? (employee.subordinates?.length || 0) * childWidth + 
