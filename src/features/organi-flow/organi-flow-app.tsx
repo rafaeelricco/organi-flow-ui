@@ -71,6 +71,32 @@ const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
   return rootEmployees;
 };
 
+const unBuildHierarchy = (hierarchicalEmployees: EmployeeEntity[]): EmployeeEntity[] => {
+  const flatEmployees: EmployeeEntity[] = [];
+  
+  const flattenHierarchy = (employees: EmployeeEntity[]) => {
+    employees.forEach(emp => {
+      // Create a new employee object without the hierarchical properties
+      const flatEmployee = {
+        id: emp.id,
+        name: emp.name,
+        title: emp.title,
+        manager_id: emp.manager_id
+      };
+      
+      flatEmployees.push(flatEmployee);
+      
+      // Recursively process subordinates if they exist
+      if (emp.subordinates && emp.subordinates.length > 0) {
+        flattenHierarchy(emp.subordinates);
+      }
+    });
+  };
+  
+  flattenHierarchy(hierarchicalEmployees);
+  return flatEmployees;
+};
+
 export const OrgChartApp: React.FC = () => {
   const { data: apiData, error, isLoading, mutate } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher)
 
@@ -97,113 +123,42 @@ export const OrgChartApp: React.FC = () => {
         enabled: true,
       });
 
-      swapyRef.current.onSwapEnd((event) => {
-        (async () => {
-          if (!event.hasChanged) return;
+      swapyRef.current.onBeforeSwap((event) => {
+        console.log('beforeSwap', event)
+        // This is for dynamically enabling and disabling swapping.
+        // Return true to allow swapping, and return false to prevent swapping.
+        return true
+     })
+     swapyRef.current.onSwapStart((event) => {
+        console.log('start', event)
+     })
+     swapyRef.current.onSwap(async(event) => {
+        console.log('swap event:', event);
+     })
+     swapyRef.current.onSwapEnd(async(event) => {
+      const itensOrder = swapyRef.current?.slotItemMap()
+      const itensOrderArray = itensOrder?.asArray
+         .map((item) => item.item)
+         .map((item) => item.replace(/emp-/, ''))
+         .map((item) => item.replace(/-slot/, ''))
+         .map((item) => Number(item))
 
-          const slotItemPairs = event.slotItemMap.asArray;
-          
-          const draggedPair = slotItemPairs.find(pair => pair.item.startsWith('emp-'));
-          if (!draggedPair) return;
+      if (!itensOrderArray) return
 
-          const draggedId = draggedPair.item.replace(/emp-/, '');
-          const newManagerId = draggedPair.slot.replace(/emp-/, '');
-          
-          const draggedEmployee = employees.find(emp => emp.id === Number(draggedId));
-          const targetEmployee = employees.find(emp => emp.id === Number(newManagerId));
-
-          if (!draggedEmployee || !targetEmployee) return;
-
-          if (
-            draggedEmployee.id === targetEmployee.id ||
-            draggedEmployee.manager_id === targetEmployee.id
-          ) {
-            toast.error('Invalid drop target: Cannot drop on self or current manager');
-            return;
-          }
-
-          if (isSubordinate(draggedEmployee.id, targetEmployee.id)) {
-            toast.error('Invalid drop target: Cannot move manager under their subordinate');
-            return;
-          }
-
-          const index = employees.findIndex(emp => emp.id === draggedEmployee.id);
-          if (index !== -1) {
-            const previousState = [...employees];
-            
-            const updatedEmployees = [...employees];
-            updatedEmployees[index] = {
-              ...draggedEmployee,
-              manager_id: targetEmployee.id
-            };
-            setEmployees(updatedEmployees);
-
-            try {
-              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-manager`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  employee_id: draggedEmployee.id, 
-                  manager_id: targetEmployee.id 
-                }),
-              });
-
-              if (!response.ok) {
-                throw new Error('Falha na atualização');
-              }
-
-              await mutate();
-              
-            } catch (error) {
-              setEmployees(previousState);
-              toast.error('Falha na atualização - revertendo alteração');
-            }
-          }
-        })();
-      });
+      console.log('itensOrderArray', itensOrderArray)
+      try {
+        console.log('swap end', event)
+      } catch (error) {
+        console.error('Erro ao trocar posições:', error);
+        toast.error('Erro ao trocar posições dos funcionários');
+      }
+     })
     }
     
     return () => {
       swapyRef.current?.destroy();
     }
   }, [employees, mutate]);
-
-  const isSubordinate = (managerId: number, targetId: number): boolean => {
-    const employeeMap = new Map<number, EmployeeEntity>();
-    employees.forEach(emp => employeeMap.set(emp.id, emp));
-
-    const checkSubordinates = (currentId: number): boolean => {
-      const current = employeeMap.get(currentId);
-      if (!current) return false;
-      if (current.id === targetId) return true;
-      const subs = employees.filter(emp => emp.manager_id === currentId);
-      return subs.some(sub => sub.id === targetId || checkSubordinates(sub.id));
-    };
-
-    return checkSubordinates(managerId);
-  };
-
-  const updateEmployeeManager = async (employeeId: number, managerId: number) => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-manager`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employee_id: employeeId, manager_id: managerId }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        toast.error(`Erro ao atualizar: ${errorData.detail || errorData.message}`);
-        return false;
-      }
-
-      toast.success('Atualizado com sucesso!');
-      return true;
-    } catch (error) {
-      toast.error('Falha na requisição para atualizar o manager');
-      return false;
-    }
-  };
 
   return (
       <div 

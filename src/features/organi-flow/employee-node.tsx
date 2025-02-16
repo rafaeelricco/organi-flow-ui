@@ -25,29 +25,27 @@ export const EmployeeNode: React.FC<EmployeeNodeProps> = ({ employee }) => {
     <div className="flex flex-col items-center relative h-fit">
       <div 
         className="slot relative z-10"
-        data-swapy-slot={`emp-${employee.id}`}
-        key={employee.id}
+        data-swapy-slot={`emp-${employee.id}-slot`}
       >
         <div
-          data-swapy-item={`emp-${employee.id}`}
+          data-swapy-item={`emp-${employee.id}-item`}
           className="relative"
-          key={employee.id}
         >
           <Card className={cn(
             "w-56 hover:shadow-lg transition-all bg-white group",
             holding.isOpen && "border border-gray-500",
             "cursor-grab active:cursor-grabbing"
-          )}>
+          )}
+          data-swapy-handle
+                  onMouseDown={() => holding.open()}
+                  onMouseUp={() => holding.close()}
+                  onMouseLeave={() => holding.close()}>
             <CardContent className="p-3 py-2">
               <div className="flex items-center gap-2">
                 <div 
                   className="text-gray-400 cursor-grab active:cursor-grabbing" 
-                  data-swapy-handle
-                  onMouseDown={() => holding.open()}
-                  onMouseUp={() => holding.close()}
-                  onMouseLeave={() => holding.close()}
                 >
-                  <GripVertical size={16} className="select-none hover:scale-110 transition-all duration-300 hover:text-gray-400 active:text-gray-600" />
+                  <GripVertical size={16} className="select-none hover:scale-110 transition-all duration-300" />
                 </div>
                 <Separator orientation="vertical" className="h-14" />
                 <div className="flex-1 ml-1.5">
