@@ -116,13 +116,13 @@ export const OrgChartApp: React.FC = () => {
   };
 
   return (
-    <div className="p-12">
+    <div className="p-8">
       <div 
-        className="flex justify-center overflow-x-auto min-w-full"
+        className="flex justify-center overflow-x-auto h-screen min-w-full bg-white"
         ref={containerRef}
         style={{
-          padding: '2rem',
-          minHeight: '100vh'
+          padding: '3rem',
+          backgroundColor: '#ffffff',
         }}
       >
         {hierarchicalEmployees.map(employee => (
