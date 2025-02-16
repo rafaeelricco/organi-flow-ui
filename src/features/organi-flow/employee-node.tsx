@@ -4,17 +4,17 @@ import * as React from 'react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { useDisclosure } from '@/hooks/useDisclosure';
+import { cn } from '@/lib/utils';
 import { EmployeeEntity } from '@/types/employee';
 import { GripVertical } from 'lucide-react';
 
-interface EmployeeNodeProps {
-  employee: EmployeeEntity;
-}
-
 export const EmployeeNode: React.FC<EmployeeNodeProps> = ({ employee }) => {
+  const holding = useDisclosure()
+
   const hasSubordinates = employee.subordinates && employee.subordinates.length > 0;
-  const childWidth = 250;
-  const childSpacing = 20;
+  const childWidth = 300;
+  const childSpacing = 100;
   
   const totalChildrenWidth = hasSubordinates
     ? (employee.subordinates?.length || 0) * childWidth + 
@@ -31,18 +31,27 @@ export const EmployeeNode: React.FC<EmployeeNodeProps> = ({ employee }) => {
           data-swapy-item={`slot-${employee.id}`}
           className="relative"
         >
-          <Card className="w-56 hover:shadow-lg transition-all bg-white">
+          <Card className={cn(
+            "w-56 hover:shadow-lg transition-all bg-white group",
+            holding.isOpen && "border border-gray-500"
+          )}>
             <CardContent className="p-3 py-2">
               <div className="flex items-center gap-2">
-                <div className="text-gray-400 cursor-grab active:cursor-grabbing" data-swapy-handle>
-                  <GripVertical size={16} />
+                <div 
+                  className="text-gray-400 cursor-grab active:cursor-grabbing" 
+                  data-swapy-handle
+                  onMouseDown={() => holding.open()}
+                  onMouseUp={() => holding.close()}
+                  onMouseLeave={() => holding.close()}
+                >
+                  <GripVertical size={16} className="select-none hover:scale-110 transition-all duration-300 hover:text-gray-400 active:text-gray-600" />
                 </div>
-                <Separator orientation='vertical' className='h-14' />
+                <Separator orientation="vertical" className="h-14" />
                 <div className="flex-1 ml-1.5">
-                  <div className="text-md font-semibold">{employee.name}</div>
-                  <div className="text-xs text-gray-500">{employee.title}</div>
+                  <div className="text-md font-semibold select-none">{employee.name}</div>
+                  <div className="text-xs text-gray-500 select-none">{employee.title}</div>
                   {employee.manager && (
-                    <div className="text-[10px] text-gray-400 mt-1">
+                    <div className="text-[10px] text-gray-400 mt-1 select-none">
                       Reports to: {employee.manager.name}
                     </div>
                   )}
@@ -71,25 +80,27 @@ export const EmployeeNode: React.FC<EmployeeNodeProps> = ({ employee }) => {
           ></div>
           <div 
             className="flex justify-start absolute top-6"
-            style={{  gap: `${childSpacing}px`, width: `${totalChildrenWidth}px` }}
+            style={{ gap: `${childSpacing}px`, width: `${totalChildrenWidth}px` }}
           >
-            {employee.subordinates?.map((subordinate) => {
-              return (
-                <div 
-                  key={subordinate.id} 
-                  className="flex flex-col items-center relative"
-                  style={{ minWidth: `${childWidth}px` }}
-                >
-                  <div className="h-6 border-l border-gray-200 absolute top-0 left-1/2 -translate-x-1/2"></div>
-                  <div className="pt-8">
-                    <EmployeeNode employee={subordinate} />
-                  </div>
+            {employee.subordinates?.map((subordinate) => (
+              <div 
+                key={subordinate.id} 
+                className="flex flex-col items-center relative" 
+                style={{ minWidth: `${childWidth}px` }}
+              >
+                <div className="h-16 border-l border-gray-200 absolute top-0 left-1/2 -translate-x-1/2"></div>
+                <div className="pt-16">
+                  <EmployeeNode employee={subordinate} />
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
       )}
     </div>
   );
 };
+
+interface EmployeeNodeProps {
+    employee: EmployeeEntity;
+}
