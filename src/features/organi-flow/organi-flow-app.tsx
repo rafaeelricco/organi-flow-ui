@@ -37,7 +37,7 @@ export const OrgChartApp: React.FC = () => {
       if (apiData) {
          setTree(apiData as unknown as TreeNode)
       }
-   }, [apiData])
+   }, [apiData, mutate])
 
    /** @dev Custom hook to track container dimensions */
    const {
@@ -135,7 +135,7 @@ export const OrgChartApp: React.FC = () => {
       return () => {
          swapyRef.current?.destroy()
       }
-   }, [apiData, tree])
+   }, [apiData, tree, mutate])
 
    return (
       <div className="h-screen w-screen bg-white" ref={setRefs}>
