@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 import { createSwapy, Swapy } from 'swapy'
 
 import Tree from 'react-d3-tree'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 
 /** 
  *  @title Organization Chart Application Component
@@ -22,8 +22,7 @@ export const OrgChartApp: React.FC = () => {
    /** @dev Fetches employee data from the API using SWR for data management */
    const {
       data: apiData,
-      isLoading,
-      mutate
+      isLoading
    } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher)
 
    /** @dev State to store the hierarchical tree structure of employees */
@@ -115,7 +114,7 @@ export const OrgChartApp: React.FC = () => {
                   )
 
                   if (!response1.ok) {
-                     throw new Error('Falha na primeira atualização')
+                     throw new Error('Failed on first update')
                   }
 
                   const response2 = await fetch(
@@ -131,13 +130,13 @@ export const OrgChartApp: React.FC = () => {
                   )
 
                   if (!response2.ok) {
-                     throw new Error('Falha na segunda atualização')
+                     throw new Error('Failed on second update')
                   }
 
-                  toast.success('Atualização bem-sucedida!')
-                  mutate()
+                  toast.success('Update successful!', { richColors: true })
                } catch (error) {
-                  toast.error('Erro na atualização!')
+                  toast.error('Update failed!', { richColors: true })
+                  mutate(`${process.env.NEXT_PUBLIC_API_URL}/employees`)
                }
             }
          })
@@ -146,7 +145,7 @@ export const OrgChartApp: React.FC = () => {
       return () => {
          swapyRef.current?.destroy()
       }
-   }, [apiData, tree, mutate])
+   }, [apiData, tree])
 
    return (
       <div className="h-screen w-screen bg-white" ref={setRefs}>
