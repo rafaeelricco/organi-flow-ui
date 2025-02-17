@@ -11,9 +11,15 @@ import useSWR from 'swr';
 import { NodeLabel } from './node-label';
 
 export const OrgChartApp: React.FC = () => {
-  const { data: apiData, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher)
+  const { data: apiData, isLoading, mutate } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher)
 
-  // const [apiData, setapiData] = React.useState<TreeNode | null>(null);
+  const [tree, setTree] = React.useState<TreeNode | null>(null)
+
+  React.useEffect(() => {
+    if (apiData) {
+      setTree(apiData as unknown as TreeNode)
+    }
+  }, [apiData])
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const swapyRef = React.useRef<Swapy | null>(null);
@@ -37,8 +43,11 @@ export const OrgChartApp: React.FC = () => {
         dragAxis: 'both',
       });
 
+      let fromId: number | undefined = undefined
+      let toId: number | undefined = undefined
+
       swapyRef.current.onBeforeSwap((event) => {
-        console.log('beforeSwap', event)
+        console.log('beforeSwap', JSON.stringify(event, null, 2))
         // This is for dynamically enabling and disabling swapping.
         // Return true to allow swapping, and return false to prevent swapping.
         return true
@@ -47,34 +56,65 @@ export const OrgChartApp: React.FC = () => {
         console.log('start', event)
      })
      swapyRef.current.onSwap(async(event) => {
-        console.log('swap event:', event);
+        console.log('swap event:', event)
+        fromId = parseInt(event.fromSlot.split('node-id-')[1].split('-slot-')[0])
+        toId = parseInt(event.toSlot.split('node-id-')[1].split('-slot-')[0])
+
+        console.log('fromId', fromId)
+        console.log('toId', toId)
      })
      swapyRef.current.onSwapEnd(async(event) => {
       console.log('swap end', event)
 
-      // await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-manager`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json'},
-      //   body: JSON.stringify(treeData),
-      // });
+      const unBuildedTree = unBuildTree(tree as TreeNode)
+
+      if(!fromId || !toId) return
+
+      const findManager = unBuildedTree.find((employee) => employee.id === fromId)
+        const findEmployee = unBuildedTree.find((employee) => employee.id === toId)
+
+        console.log('findManager', findManager)
+        console.log('findEmployee', findEmployee)
       
-      
+
+      if(fromId && toId) {
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              id: fromId,
+              manager_id: findEmployee?.manager_id
+            }),
+          });
+
+          if(!response.ok) throw new Error('Falha na atualização');
+          
+          const result = await response.json();
+          console.log('Atualização bem-sucedida:', result);
+          
+          // Atualizar a árvore local após sucesso
+          mutate();
+        } catch (error) {
+          console.error('Erro na atualização:', error);
+        }
+      }
      })
     }
     
     return () => {
       swapyRef.current?.destroy();
     }
-  }, [apiData]);
+  }, [apiData, tree, mutate]);
 
   return (
     <div className="w-screen h-screen bg-white" ref={setRefs}>
       <div style={{ width: '100%', height: '100%' }} >
         {isLoading ? (
           <div>Loading...</div>
-        ) : apiData && (
+        ) : tree && (
           <Tree 
-            data={apiData}
+            data={tree}
             draggable={false}
             hasInteractiveNodes
             orientation="vertical"
@@ -94,79 +134,26 @@ export const OrgChartApp: React.FC = () => {
   );
 };
 
-const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
-  if (!Array.isArray(employees)) {
-    console.error('Expected employees to be an array, received:', employees);
-    return [];
-  }
-
-  const employeeMap = new Map<number, EmployeeEntity>();
-
-  employees.forEach(emp => {
-    employeeMap.set(emp.id, { ...emp, subordinates: [] });
-  });
-
-  const rootEmployees: EmployeeEntity[] = [];
+function unBuildTree(tree: TreeNode): EmployeeEntity[] {
+  const employees: EmployeeEntity[] = [];
   
-  employeeMap.forEach(employee => {
-    if (employee.manager_id === null) {
-      rootEmployees.push(employee);
-    } else {
-      const manager = employeeMap.get(employee.manager_id);
-      if (manager) {
-        employee.manager = manager;
-        manager.subordinates?.push(employee);
-      }
-    }
-  });
-
-  return rootEmployees;
-};
-
-const transformToapiData = (employees: EmployeeEntity[]): TreeNode => {
-  const convertEmployee = (employee: EmployeeEntity): TreeNode => {
-    return {
-      name: employee.name,
-      attributes: {
-        id: employee.id,
-        title: employee.title,
-        manager_id: employee.manager?.id || 0
-      },
-      children: employee.subordinates && employee.subordinates.length > 0
-        ? employee.subordinates.map(sub => convertEmployee(sub))
-        : []
-    };
-  };
-
-  if (employees.length === 0) {
-    return {
-      name: 'No Data',
-      attributes: {
-        id: 0,
-        title: 'No Data',
-        manager_id: 0
-      },
-      children: []
-    };
-  }
-
-  return convertEmployee(employees[0]);
-};
-
-
-const unBuildapiData = (apiData: TreeNode): EmployeeEntity[] => {
-  const flatten: EmployeeEntity[] = [];
-
-  const traverse = (node: TreeNode) => {
-    flatten.push({
+  function processNode(node: TreeNode, managerId: number | null) {
+    // Adiciona o funcionário atual ao array
+    employees.push({
       id: node.attributes.id,
       name: node.name,
       title: node.attributes.title,
-      manager_id: node.attributes.manager_id || null
+      manager_id: managerId
     });
-    node.children?.forEach(traverse);
-  };
 
-  traverse(apiData);
-  return flatten;
-};
+    // Processa recursivamente os filhos
+    node.children?.forEach(child => {
+      processNode(child, node.attributes.id);
+    });
+  }
+
+  // Inicia o processamento a partir da raiz (CEO sem manager)
+  processNode(tree, null);
+  
+  return employees;
+}
