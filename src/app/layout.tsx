@@ -17,21 +17,22 @@ const interFont = Inter({
 export const metadata: Metadata = {
    metadataBase: new URL(`https://${process.env.VERCEL_URL}`),
    title: {
-      default:
-         'Matriz de Avaliação de Produtos | Análise de Complexidade e Retorno',
-      template: '%s | Matriz de Avaliação de Produtos'
+      default: 'OrganiFlow | Interactive Organization Chart Tool',
+      template: '%s | OrganiFlow'
    },
    description:
-      'Ferramenta profissional para avaliar e classificar produtos com base em complexidade e retorno. Análise visual através de quadrantes, gráficos interativos e relatórios detalhados para tomada de decisão.',
+      'Professional tool for visualizing and managing organizational structures with interactive drag-and-drop functionality. Create, edit, and analyze your company hierarchy with ease.',
    keywords: [
-      'avaliação de produtos',
-      'matriz de complexidade',
-      'análise de retorno',
-      'classificação por quadrantes',
-      'gestão de produtos',
-      'priorização de features',
-      'dashboard interativo',
-      'análise de viabilidade'
+      'organization chart',
+      'org chart',
+      'organizational structure',
+      'employee hierarchy',
+      'company structure',
+      'team management',
+      'interactive org chart',
+      'drag and drop org chart',
+      'employee management',
+      'reporting structure'
    ],
    authors: [
       {
@@ -42,17 +43,17 @@ export const metadata: Metadata = {
    creator: 'Rafael Ricco',
    openGraph: {
       type: 'website',
-      locale: 'pt_BR',
-      title: 'Matriz de Avaliação de Produtos | Análise Estratégica',
+      locale: 'en_US',
+      title: 'OrganiFlow | Interactive Organization Chart Tool',
       description:
-         'Avalie e classifique produtos com base em complexidade e retorno. Visualize dados em quadrantes, gere relatórios e tome decisões estratégicas.',
-      siteName: 'Matriz de Avaliação'
+         'Visualize and manage your organizational structure with an interactive, drag-and-drop organization chart tool. Perfect for companies of all sizes.',
+      siteName: 'OrganiFlow'
    },
    twitter: {
       card: 'summary_large_image',
-      title: 'Matriz de Avaliação de Produtos | Análise Estratégica',
+      title: 'OrganiFlow | Interactive Organization Chart Tool',
       description:
-         'Avalie e classifique produtos com base em complexidade e retorno. Visualize dados em quadrantes, gere relatórios e tome decisões estratégicas.',
+         'Visualize and manage your organizational structure with an interactive, drag-and-drop organization chart tool. Perfect for companies of all sizes.',
       creator: '@seuhandle'
    },
    robots: {
