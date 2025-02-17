@@ -89,7 +89,7 @@ export const OrgChartApp: React.FC = () => {
 
       if(findEmployeeInfos && findNewManagerInfos) {
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`, {
+          const response1 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -98,9 +98,17 @@ export const OrgChartApp: React.FC = () => {
             }),
           });
 
-          if(!response.ok) throw new Error('Falha na atualização');
+          const response2 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              id: findNewManagerInfos?.id,
+              new_manager_id: findEmployeeInfos?.manager_id
+            }),
+          });
+
+          if(!response1.ok || !response2.ok) throw new Error('Falha na atualização');
           
-          const result = await response.json();
           toast.success('Atualização bem-sucedida!');
           
           // Atualizar a árvore local após sucesso
