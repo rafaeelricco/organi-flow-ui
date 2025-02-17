@@ -120,10 +120,12 @@ export const OrgChartApp: React.FC = () => {
                      toast.success('Positions swapped successfully!', { richColors: true });
                      isEnabled = true;
                   } else {
-                     throw new Error('Update failed');
+                     const errorData = await response.json();
+                     throw new Error(errorData.detail || 'Update failed');
                   }
                } catch (error) {
-                  toast.error('Failed to swap positions!', { richColors: true });
+                  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                  toast.error(`Failed to swap positions: ${errorMessage}`, { richColors: true });
                   mutate(`${process.env.NEXT_PUBLIC_API_URL}/employees`);
                }
             }
