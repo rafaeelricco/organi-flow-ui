@@ -133,7 +133,7 @@ export const OrgChartApp: React.FC = () => {
         ) : tree && (
           <Tree 
             data={tree}
-            draggable={false}
+            draggable
             hasInteractiveNodes
             orientation="vertical"
             enableLegacyTransitions
