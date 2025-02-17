@@ -6,6 +6,7 @@ import { useElementSize } from '@/hooks/useElementSize';
 import { fetcher } from '@/lib/fetcher';
 import { EmployeeEntity } from '@/types/employee';
 import Tree from 'react-d3-tree';
+import { toast } from 'sonner';
 import { createSwapy, Swapy } from 'swapy';
 import useSWR from 'swr';
 import { NodeLabel } from './node-label';
@@ -70,33 +71,42 @@ export const OrgChartApp: React.FC = () => {
 
       if(!fromId || !toId) return
 
-      const findManager = unBuildedTree.find((employee) => employee.id === fromId)
-        const findEmployee = unBuildedTree.find((employee) => employee.id === toId)
+      /* 
+      pega o fromId
+      */
 
-        console.log('findManager', findManager)
-        console.log('findEmployee', findEmployee)
+      const findEmployeeInfos = unBuildedTree.find((employee) => employee.id === fromId)
+      console.log('findEmployeeInfos', findEmployeeInfos)
+
+      /* 
+      pega o toId
+      o gerente do toId é o novo gerente do fromId
+      */
+
+      const findNewManagerInfos = unBuildedTree.find((employee) => employee.id === toId)
+      console.log('findNewManagerInfos', findNewManagerInfos)
       
 
-      if(fromId && toId) {
+      if(findEmployeeInfos && findNewManagerInfos) {
         try {
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json'},
             body: JSON.stringify({
-              id: fromId,
-              manager_id: findEmployee?.manager_id
+              id: findEmployeeInfos?.id,
+              new_manager_id: findNewManagerInfos?.manager_id
             }),
           });
 
           if(!response.ok) throw new Error('Falha na atualização');
           
           const result = await response.json();
-          console.log('Atualização bem-sucedida:', result);
+          toast.success('Atualização bem-sucedida!');
           
           // Atualizar a árvore local após sucesso
           mutate();
         } catch (error) {
-          console.error('Erro na atualização:', error);
+          toast.error('Erro na atualização!');
         }
       }
      })
