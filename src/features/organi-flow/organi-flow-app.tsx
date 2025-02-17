@@ -116,8 +116,6 @@ export const OrgChartApp: React.FC = () => {
                      throw new Error('Falha na atualização')
 
                   toast.success('Atualização bem-sucedida!')
-
-                  mutate()
                } catch (error) {
                   toast.error('Erro na atualização!')
                }
