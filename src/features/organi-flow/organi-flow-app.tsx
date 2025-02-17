@@ -83,7 +83,6 @@ export const OrgChartApp: React.FC = () => {
             return true
          })
          swapyRef.current.onSwap(async (event) => {
-            console.log('onSwap', event)
             fromId = parseInt(
                event.fromSlot.split('node-id-')[1].split('-slot-')[0]
             )
