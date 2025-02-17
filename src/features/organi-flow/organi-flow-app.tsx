@@ -2,12 +2,12 @@
 
 import * as React from 'react';
 
+import { useElementSize } from '@/hooks/useElementSize';
 import { fetcher } from '@/lib/fetcher';
 import { EmployeeEntity } from '@/types/employee';
+import Tree, { RawNodeDatum } from 'react-d3-tree';
 import { toast } from 'sonner';
 import { createSwapy, Swapy } from 'swapy';
-
-import Tree, { RawNodeDatum } from 'react-d3-tree';
 import useSWR from 'swr';
 import { NodeLabel } from './node-label';
 
@@ -15,6 +15,21 @@ export const OrgChartApp: React.FC = () => {
   const { data: apiData, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher);
 
   const [treeData, setTreeData] = React.useState<TreeNode | null>(null);
+
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const swapyRef = React.useRef<Swapy | null>(null);
+  
+  const { ref: sizeRef, width: containerWidth, height: containerHeight } = useElementSize<HTMLDivElement>();
+
+  const setRefs = (element: HTMLDivElement | null) => {
+    containerRef.current = element;
+    sizeRef.current = element;
+  };
+
+  const centerPosition = React.useMemo(() => ({
+    x: containerWidth / 2,
+    y: containerHeight / 5
+  }), [containerWidth, containerHeight]);
 
   React.useEffect(() => {
     if (apiData) {
@@ -24,16 +39,11 @@ export const OrgChartApp: React.FC = () => {
     }
   }, [apiData]);
 
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const swapyRef = React.useRef<Swapy | null>(null);
-
   React.useEffect(() => {
     if (containerRef.current) {
       swapyRef.current = createSwapy(containerRef.current, {
-        animation: 'dynamic',
+        animation: 'none',
         dragAxis: 'both',
-        autoScrollOnDrag: true,
-        enabled: true,
       });
 
       swapyRef.current.onBeforeSwap((event) => {
@@ -85,20 +95,25 @@ export const OrgChartApp: React.FC = () => {
   }, [treeData]);
 
   return (
-    <div className="w-screen h-screen bg-white" ref={containerRef}>
-      <div id="treeWrapper" style={{ width: '100%', height: '100%' }}>
+    <div className="w-screen h-screen bg-white" ref={setRefs}>
+      <div style={{ width: '100%', height: '100%' }} >
         {isLoading ? (
           <div>Loading...</div>
         ) : treeData && (
           <Tree 
-            draggable
             data={treeData}
+            draggable={false}
+            hasInteractiveNodes
             orientation="vertical"
-            translate={{ x: 900, y: 100 }}
-            separation={{ siblings: 2, nonSiblings: 2.5 }}
+            enableLegacyTransitions
+            translate={centerPosition}
             nodeSize={{ x: 150, y: 150 }}
-            renderCustomNodeElement={(props) => <NodeLabel {...props} />}
-            pathFunc="step"
+            separation={{ siblings: 2, nonSiblings: 2.5 }}
+            renderCustomNodeElement={(props) => (
+                <foreignObject width="200" height="300" x="-100">
+                  <NodeLabel {...props} />
+                </foreignObject>
+            )}
           />
         )}
       </div>

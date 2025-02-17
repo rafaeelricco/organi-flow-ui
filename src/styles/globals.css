@@ -141,3 +141,24 @@ code {
    padding: 0.2em 0.4em;
    border-radius: 3px;
 }
+
+
+.rd3t-node {
+   isolation: isolate;
+   transform-box: fill-box;
+ }
+ 
+ .swapy-item {
+   transition: transform 0.2s cubic-bezier(0.18, 0.67, 0.6, 1.22) !important;
+   will-change: transform;
+ }
+ 
+ /* Correção de z-index */
+ foreignObject {
+   z-index: 1;
+   overflow: visible;
+ }
+ 
+ .swapy-dragging .foreignObject {
+   transition: none !important;
+ }
