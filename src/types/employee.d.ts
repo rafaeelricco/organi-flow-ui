@@ -5,4 +5,5 @@ export interface EmployeeEntity {
    manager_id: number | null
    subordinates?: EmployeeEntity[]
    manager?: EmployeeEntity
+   position?: number
 }

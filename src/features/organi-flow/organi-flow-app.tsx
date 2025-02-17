@@ -39,7 +39,15 @@ const employeesData: EmployeeEntity[] = [
 const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
   const employeeMap = new Map<number, EmployeeEntity>();
   
-  employees.forEach(emp => {
+  // Sort employees by position first, fallback to name if position is not available
+  const sortedEmployees = [...employees].sort((a, b) => {
+    if (a.position !== undefined && b.position !== undefined) {
+      return a.position - b.position;
+    }
+    return a.name.localeCompare(b.name);
+  });
+  
+  sortedEmployees.forEach(emp => {
     employeeMap.set(emp.id, { ...emp, subordinates: [] });
   });
 
@@ -57,8 +65,14 @@ const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
     }
   });
 
+  // Sort subordinates by position
   const sortEmployees = (employees: EmployeeEntity[]) => {
-    employees.sort((a, b) => a.name.localeCompare(b.name));
+    employees.sort((a, b) => {
+      if (a.position !== undefined && b.position !== undefined) {
+        return a.position - b.position;
+      }
+      return a.name.localeCompare(b.name);
+    });
     employees.forEach(emp => {
       if (emp.subordinates && emp.subordinates.length > 0) {
         sortEmployees(emp.subordinates);
@@ -95,6 +109,26 @@ const unBuildHierarchy = (hierarchicalEmployees: EmployeeEntity[]): EmployeeEnti
   
   flattenHierarchy(hierarchicalEmployees);
   return flatEmployees;
+};
+
+const updateEmployeesPositions = async (employees: EmployeeEntity[]) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/batch-update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ employees }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Falha ao atualizar posições');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const OrgChartApp: React.FC = () => {
@@ -136,18 +170,29 @@ export const OrgChartApp: React.FC = () => {
         console.log('swap event:', event);
      })
      swapyRef.current.onSwapEnd(async(event) => {
-      const itensOrder = swapyRef.current?.slotItemMap()
-      const itensOrderArray = itensOrder?.asArray
-         .map((item) => item.item)
-         .map((item) => item.replace(/emp-/, ''))
-         .map((item) => item.replace(/-slot/, ''))
-         .map((item) => Number(item))
-
-      if (!itensOrderArray) return
-
-      console.log('itensOrderArray', itensOrderArray)
       try {
-        console.log('swap end', event)
+        const itensOrder = swapyRef.current?.slotItemMap();
+        const itensOrderArray = itensOrder?.asArray
+          .map((item) => item.item)
+          .map((item) => item.replace(/emp-/, ''))
+          .map((item) => item.replace(/-item/, ''))
+          .map((item) => Number(item));
+
+        if (!itensOrderArray) return;
+
+        const unHierarchicalEmployees = unBuildHierarchy(employees);
+        const updatedEmployees: EmployeeEntity[] = unHierarchicalEmployees.map((employee) => {
+          const newPosition = itensOrderArray.indexOf(employee.id);
+          return {
+            ...employee,
+            position: newPosition >= 0 ? newPosition : employee.position
+          };
+        });
+
+        await updateEmployeesPositions(updatedEmployees);
+        await mutate();
+        toast.success('Posições atualizadas com sucesso!');
+        
       } catch (error) {
         console.error('Erro ao trocar posições:', error);
         toast.error('Erro ao trocar posições dos funcionários');
@@ -162,7 +207,7 @@ export const OrgChartApp: React.FC = () => {
 
   return (
       <div 
-        className="flex justify-center overflow-auto min-h-screen min-w-full bg-white p-12"
+        className="flex justify-center overflow-auto min-h-screen w-screen bg-white p-12"
         ref={containerRef}
       >
         {isLoading ? (

@@ -14,7 +14,7 @@ export const EmployeeNode: React.FC<EmployeeNodeProps> = ({ employee }) => {
 
   const hasSubordinates = employee.subordinates && employee.subordinates.length > 0;
   const childWidth = 200;
-  const childSpacing = 300;
+  const childSpacing = 80;
   
   const totalChildrenWidth = hasSubordinates
     ? (employee.subordinates?.length || 0) * childWidth + 
