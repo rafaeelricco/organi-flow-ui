@@ -66,9 +66,12 @@ export const OrgChartApp: React.FC = () => {
     */
    React.useEffect(() => {
       if (containerRef.current) {
+         let isEnabled = true
+
          swapyRef.current = createSwapy(containerRef.current, {
             animation: 'none',
-            dragAxis: 'x'
+            dragAxis: 'x',
+            enabled: isEnabled
          })
 
          let fromId: number | undefined = undefined
@@ -101,42 +104,41 @@ export const OrgChartApp: React.FC = () => {
 
             if (findEmployeeInfos && findNewManagerInfos) {
                try {
-                  const response1 = await fetch(
-                     `${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`,
-                     {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                           id: findEmployeeInfos?.id,
-                           new_manager_id: findNewManagerInfos?.manager_id
-                        })
-                     }
-                  )
+                  const loadingToast1 = toast.loading('Updating first employee...');
+                  const loadingToast2 = toast.loading('Updating second employee...');
 
-                  if (!response1.ok) {
-                     throw new Error('Failed on first update')
+                  // First request
+                  const response1 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`, {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({
+                        id: findEmployeeInfos?.id,
+                        new_manager_id: findNewManagerInfos?.manager_id
+                     })
+                  }).finally(() => toast.dismiss(loadingToast1));
+
+                  await new Promise(resolve => setTimeout(resolve, 100));
+
+                  const response2 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`, {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({
+                        id: findNewManagerInfos?.id,
+                        new_manager_id: findEmployeeInfos?.manager_id
+                     })
+                  }).finally(() => toast.dismiss(loadingToast2));
+
+                  isEnabled = false;
+
+                  if (response1.ok && response2.ok) {
+                     toast.success('Update successful!', { richColors: true });
+                     isEnabled = true;
+                  } else {
+                     throw new Error('One or more updates failed');
                   }
-
-                  const response2 = await fetch(
-                     `${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`,
-                     {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                           id: findNewManagerInfos?.id,
-                           new_manager_id: findEmployeeInfos?.manager_id
-                        })
-                     }
-                  )
-
-                  if (!response2.ok) {
-                     throw new Error('Failed on second update')
-                  }
-
-                  toast.success('Update successful!', { richColors: true })
                } catch (error) {
-                  toast.error('Update failed!', { richColors: true })
-                  mutate(`${process.env.NEXT_PUBLIC_API_URL}/employees`)
+                  toast.error('Update failed!', { richColors: true });
+                  mutate(`${process.env.NEXT_PUBLIC_API_URL}/employees`);
                }
             }
          })
