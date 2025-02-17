@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<img src="https://res.cloudinary.com/dnqiosdb6/image/upload/v1739812292/organi-flow-app-cover_djaeh9.png" alt="organi-flow-app">
 
-## Getting Started
+## About the Project
 
-First, run the development server:
+**OrganiFlow** is an interactive platform for visualizing and managing organizational structures, ideal for companies of different sizes. The tool enables the creation, editing, and analysis of hierarchies through an intuitive interface with drag-and-drop features.
+
+Main features:
+- Interactive hierarchical visualization
+- Management of positions and relationships between employees
+- Quick editing of information and structure
+- Optimized user experience to facilitate organization analysis
+
+--------------------------------------------------
+
+## Environment Setup
+
+### 1. Prerequisites
+
+Make sure the following software is installed on your machine:
+
+- **Node.js** (version 18 or higher)
+- **PNPM** (version 8 or higher)
+- **Git**
+
+Also, set up the necessary environment variables:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Project Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**a. Repository Clone**  
+Clone the repository and access the project directory:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+git clone https://github.com/rafaeelricco/organi-flow-ui
+cd organi-flow-frontend
+```
 
-## Learn More
+**b. Dependencies Installation**  
+Install all project dependencies using PNPM:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm install
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+--------------------------------------------------
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Running the Application
 
-## Deploy on Vercel
+### Development Environment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Start the local server with the command:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm dev
+```
+
+The application will be available at: [http://localhost:3000](http://localhost:3000)
+
+### Production Environment
+
+To generate the production build, use the commands:
+
+```bash
+pnpm build
+pnpm start
+```
