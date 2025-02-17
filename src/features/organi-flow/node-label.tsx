@@ -7,10 +7,17 @@ import { cn } from '@/lib/utils'
 import { GripVertical } from 'lucide-react'
 import { CustomNodeElementProps } from 'react-d3-tree'
 
+/** 
+ *  @title Node Label Component
+ *  @notice Renders an individual employee node in the organization chart
+ *  @param nodeDatum Data for the current node including employee information
+ *  @param toggleNode Function to expand/collapse the node
+ */
 export const NodeLabel: React.FC<CustomNodeElementProps> = ({
    nodeDatum,
    toggleNode
 }) => {
+   /** @dev Hook to track if the node is being held/dragged */
    const holding = useDisclosure()
 
    return (

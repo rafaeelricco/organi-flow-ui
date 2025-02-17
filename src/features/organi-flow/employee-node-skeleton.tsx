@@ -10,16 +10,23 @@ import { cn } from '@/lib/utils'
 import { EmployeeEntity } from '@/types/employee'
 import { GripVertical } from 'lucide-react'
 
+/** 
+ *  @title Employee Node Skeleton Component
+ *  @notice Renders a loading skeleton version of an employee node
+ *  @param employee Employee data object containing hierarchy information
+ */
 export const EmployeeNodeSkeleton: React.FC<EmployeeNodeProps> = ({
    employee
 }) => {
+   /** @dev Hook to track if the node is being held */
    const holding = useDisclosure()
 
-   const hasSubordinates =
-      employee.subordinates && employee.subordinates.length > 0
+   /** @dev Calculate dimensions for child nodes layout */
+   const hasSubordinates = employee.subordinates && employee.subordinates.length > 0
    const childWidth = 200
    const childSpacing = 300
 
+   /** @dev Calculate total width needed for all child nodes */
    const totalChildrenWidth = hasSubordinates
       ? (employee.subordinates?.length || 0) * childWidth +
         ((employee.subordinates?.length || 0) - 1) * childSpacing

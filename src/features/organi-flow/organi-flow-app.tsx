@@ -2,8 +2,8 @@
 
 import * as React from 'react'
 
+import { employeesMock } from '@/features/organi-flow/employee-mock'
 import { EmployeeNodeSkeleton } from '@/features/organi-flow/employee-node-skeleton'
-import { employeesMock } from '@/features/organi-flow/employees-mock'
 import { NodeLabel } from '@/features/organi-flow/node-label'
 import { useElementSize } from '@/hooks/useElementSize'
 import { fetcher } from '@/lib/fetcher'
@@ -14,35 +14,46 @@ import { createSwapy, Swapy } from 'swapy'
 import Tree from 'react-d3-tree'
 import useSWR from 'swr'
 
+/** 
+ *  @title Organization Chart Application Component
+ *  @notice Main component that renders an interactive organizational chart with drag-and-drop functionality
+ */
 export const OrgChartApp: React.FC = () => {
+   /** @dev Fetches employee data from the API using SWR for data management */
    const {
       data: apiData,
       isLoading,
       mutate
    } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher)
 
+   /** @dev State to store the hierarchical tree structure of employees */
    const [tree, setTree] = React.useState<TreeNode | null>(null)
 
+   /** @dev References for the container and Swapy instance */
    const containerRef = React.useRef<HTMLDivElement>(null)
    const swapyRef = React.useRef<Swapy | null>(null)
 
+   /** @dev Updates tree state when API data is received */
    React.useEffect(() => {
       if (apiData) {
          setTree(apiData as unknown as TreeNode)
       }
    }, [apiData])
 
+   /** @dev Custom hook to track container dimensions */
    const {
       ref: sizeRef,
       width: containerWidth,
       height: containerHeight
    } = useElementSize<HTMLDivElement>()
 
+   /** @dev Combines container and size refs into a single ref callback */
    const setRefs = (element: HTMLDivElement | null) => {
       containerRef.current = element
       sizeRef.current = element
    }
 
+   /** @dev Calculates the center position for the tree based on container dimensions */
    const centerPosition = React.useMemo(
       () => ({
          x: containerWidth / 2,
@@ -51,6 +62,9 @@ export const OrgChartApp: React.FC = () => {
       [containerWidth, containerHeight]
    )
 
+   /** @dev Initializes Swapy drag-and-drop functionality and handles employee position swapping
+    *  @notice Sets up event handlers for drag-and-drop operations and updates employee manager relationships
+    */
    React.useEffect(() => {
       if (containerRef.current) {
          swapyRef.current = createSwapy(containerRef.current, {
