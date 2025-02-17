@@ -1,7 +1,5 @@
 <img src="https://res.cloudinary.com/dnqiosdb6/image/upload/v1739812292/organi-flow-app-cover_djaeh9.png" alt="organi-flow-app">
 
-## About the Project
-
 **OrganiFlow** is an interactive platform for visualizing and managing organizational structures, ideal for companies of different sizes. The tool enables the creation, editing, and analysis of hierarchies through an intuitive interface with drag-and-drop features.
 
 Try it out: <a href="https://organi-flow-ui.vercel.app" target="_blank">Live Demo</a>
