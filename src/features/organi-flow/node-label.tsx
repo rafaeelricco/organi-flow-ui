@@ -59,13 +59,6 @@ export const NodeLabel: React.FC<CustomNodeElementProps> = ({
                                  <div className="select-none text-xs text-gray-500">
                                     {String(nodeDatum.attributes.title)}
                                  </div>
-                                 {String(nodeDatum.attributes.manager) !==
-                                    'None' && (
-                                    <div className="mt-1 select-none text-[10px] text-gray-400">
-                                       Reports to:{' '}
-                                       {String(nodeDatum.attributes.manager)}
-                                    </div>
-                                 )}
                               </React.Fragment>
                            )}
                         </div>

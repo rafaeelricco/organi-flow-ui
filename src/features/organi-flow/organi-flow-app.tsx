@@ -70,7 +70,7 @@ export const OrgChartApp: React.FC = () => {
 
          swapyRef.current = createSwapy(containerRef.current, {
             animation: 'none',
-            dragAxis: 'x',
+            dragAxis: 'both',
             enabled: isEnabled
          })
 
@@ -83,6 +83,7 @@ export const OrgChartApp: React.FC = () => {
             return true
          })
          swapyRef.current.onSwap(async (event) => {
+            console.log('onSwap', event)
             fromId = parseInt(
                event.fromSlot.split('node-id-')[1].split('-slot-')[0]
             )
@@ -104,40 +105,26 @@ export const OrgChartApp: React.FC = () => {
 
             if (findEmployeeInfos && findNewManagerInfos) {
                try {
-                  const loadingToast1 = toast.loading('Updating first employee...');
-                  const loadingToast2 = toast.loading('Updating second employee...');
-
-                  // First request
-                  const response1 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`, {
-                     method: 'POST',
-                     headers: { 'Content-Type': 'application/json' },
-                     body: JSON.stringify({
-                        id: findEmployeeInfos?.id,
-                        new_manager_id: findNewManagerInfos?.manager_id
-                     })
-                  }).finally(() => toast.dismiss(loadingToast1));
-
-                  await new Promise(resolve => setTimeout(resolve, 100));
-
-                  const response2 = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`, {
-                     method: 'POST',
-                     headers: { 'Content-Type': 'application/json' },
-                     body: JSON.stringify({
-                        id: findNewManagerInfos?.id,
-                        new_manager_id: findEmployeeInfos?.manager_id
-                     })
-                  }).finally(() => toast.dismiss(loadingToast2));
-
+                  const loadingToast = toast.loading('Updating employees positions...');
                   isEnabled = false;
 
-                  if (response1.ok && response2.ok) {
-                     toast.success('Update successful!', { richColors: true });
+                  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`, {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({
+                        employee_id: findEmployeeInfos.id,
+                        target_id: findNewManagerInfos.id
+                     })
+                  }).finally(() => toast.dismiss(loadingToast));
+
+                  if (response.ok) {
+                     toast.success('Positions swapped successfully!', { richColors: true });
                      isEnabled = true;
                   } else {
-                     throw new Error('One or more updates failed');
+                     throw new Error('Update failed');
                   }
                } catch (error) {
-                  toast.error('Update failed!', { richColors: true });
+                  toast.error('Failed to swap positions!', { richColors: true });
                   mutate(`${process.env.NEXT_PUBLIC_API_URL}/employees`);
                }
             }
