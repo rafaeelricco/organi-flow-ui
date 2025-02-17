@@ -111,8 +111,7 @@ export const OrgChartApp: React.FC = () => {
           
           toast.success('Atualização bem-sucedida!');
           
-          // Atualizar a árvore local após sucesso
-          // mutate();
+          mutate();
         } catch (error) {
           toast.error('Erro na atualização!');
         }
