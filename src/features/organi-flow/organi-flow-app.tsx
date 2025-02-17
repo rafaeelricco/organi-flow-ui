@@ -5,16 +5,15 @@ import * as React from 'react';
 import { useElementSize } from '@/hooks/useElementSize';
 import { fetcher } from '@/lib/fetcher';
 import { EmployeeEntity } from '@/types/employee';
-import Tree, { RawNodeDatum } from 'react-d3-tree';
-import { toast } from 'sonner';
+import Tree from 'react-d3-tree';
 import { createSwapy, Swapy } from 'swapy';
 import useSWR from 'swr';
 import { NodeLabel } from './node-label';
 
 export const OrgChartApp: React.FC = () => {
-  const { data: apiData, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher);
+  const { data: apiData, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/employees`, fetcher)
 
-  const [treeData, setTreeData] = React.useState<TreeNode | null>(null);
+  // const [apiData, setapiData] = React.useState<TreeNode | null>(null);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const swapyRef = React.useRef<Swapy | null>(null);
@@ -30,14 +29,6 @@ export const OrgChartApp: React.FC = () => {
     x: containerWidth / 2,
     y: containerHeight / 5
   }), [containerWidth, containerHeight]);
-
-  React.useEffect(() => {
-    if (apiData) {
-      const hierarchicalData = buildHierarchy(apiData);
-      const transformedData = transformToTreeData(hierarchicalData);
-      setTreeData(transformedData);
-    }
-  }, [apiData]);
 
   React.useEffect(() => {
     if (containerRef.current) {
@@ -59,49 +50,31 @@ export const OrgChartApp: React.FC = () => {
         console.log('swap event:', event);
      })
      swapyRef.current.onSwapEnd(async(event) => {
-      try {
-        const itensOrder = swapyRef.current?.slotItemMap();
-        const itensOrderArray = itensOrder?.asArray
-          .map((item) => item.item)
-          .map((item) => item.replace(/emp-/, ''))
-          .map((item) => item.replace(/-item/, ''))
-          .map((item) => Number(item));
+      console.log('swap end', event)
 
-        if (!itensOrderArray) return;
-
-        // const unHierarchicalEmployees = unBuildHierarchy(employees);
-        // const updatedEmployees: EmployeeEntity[] = unHierarchicalEmployees.map((employee) => {
-        //   const newPosition = itensOrderArray.indexOf(employee.id);
-        //   return {
-        //     ...employee,
-        //     position: newPosition >= 0 ? newPosition : employee.position
-        //   };
-        // });
-
-        // await updateEmployeesPositions(updatedEmployees);
-        // await mutate();
-        toast.success('Posições atualizadas com sucesso!');
-        
-      } catch (error) {
-        console.error('Erro ao trocar posições:', error);
-        toast.error('Erro ao trocar posições dos funcionários');
-      }
+      // await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-manager`, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json'},
+      //   body: JSON.stringify(treeData),
+      // });
+      
+      
      })
     }
     
     return () => {
       swapyRef.current?.destroy();
     }
-  }, [treeData]);
+  }, [apiData]);
 
   return (
     <div className="w-screen h-screen bg-white" ref={setRefs}>
       <div style={{ width: '100%', height: '100%' }} >
         {isLoading ? (
           <div>Loading...</div>
-        ) : treeData && (
+        ) : apiData && (
           <Tree 
-            data={treeData}
+            data={apiData}
             draggable={false}
             hasInteractiveNodes
             orientation="vertical"
@@ -122,16 +95,14 @@ export const OrgChartApp: React.FC = () => {
 };
 
 const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
+  if (!Array.isArray(employees)) {
+    console.error('Expected employees to be an array, received:', employees);
+    return [];
+  }
+
   const employeeMap = new Map<number, EmployeeEntity>();
-  
-  const sortedEmployees = [...employees].sort((a, b) => {
-    if (a.position !== undefined && b.position !== undefined) {
-      return a.position - b.position;
-    }
-    return a.name.localeCompare(b.name);
-  });
-  
-  sortedEmployees.forEach(emp => {
+
+  employees.forEach(emp => {
     employeeMap.set(emp.id, { ...emp, subordinates: [] });
   });
 
@@ -149,41 +120,17 @@ const buildHierarchy = (employees: EmployeeEntity[]): EmployeeEntity[] => {
     }
   });
 
-  const sortEmployees = (employees: EmployeeEntity[]) => {
-    employees.sort((a, b) => {
-      if (a.position !== undefined && b.position !== undefined) {
-        return a.position - b.position;
-      }
-      return a.name.localeCompare(b.name);
-    });
-    employees.forEach(emp => {
-      if (emp.subordinates && emp.subordinates.length > 0) {
-        sortEmployees(emp.subordinates);
-      }
-    });
-  };
-
-  sortEmployees(rootEmployees);
-
   return rootEmployees;
 };
 
-interface TreeNode extends RawNodeDatum {
-  name: string;
-  attributes?: {
-    title: string;
-    manager: string;
-  };
-  children?: TreeNode[];
-}
-
-const transformToTreeData = (employees: EmployeeEntity[]): TreeNode => {
+const transformToapiData = (employees: EmployeeEntity[]): TreeNode => {
   const convertEmployee = (employee: EmployeeEntity): TreeNode => {
     return {
       name: employee.name,
       attributes: {
+        id: employee.id,
         title: employee.title,
-        manager: employee.manager?.name || 'None'
+        manager_id: employee.manager?.id || 0
       },
       children: employee.subordinates && employee.subordinates.length > 0
         ? employee.subordinates.map(sub => convertEmployee(sub))
@@ -194,9 +141,32 @@ const transformToTreeData = (employees: EmployeeEntity[]): TreeNode => {
   if (employees.length === 0) {
     return {
       name: 'No Data',
+      attributes: {
+        id: 0,
+        title: 'No Data',
+        manager_id: 0
+      },
       children: []
     };
   }
 
   return convertEmployee(employees[0]);
+};
+
+
+const unBuildapiData = (apiData: TreeNode): EmployeeEntity[] => {
+  const flatten: EmployeeEntity[] = [];
+
+  const traverse = (node: TreeNode) => {
+    flatten.push({
+      id: node.attributes.id,
+      name: node.name,
+      title: node.attributes.title,
+      manager_id: node.attributes.manager_id || null
+    });
+    node.children?.forEach(traverse);
+  };
+
+  traverse(apiData);
+  return flatten;
 };

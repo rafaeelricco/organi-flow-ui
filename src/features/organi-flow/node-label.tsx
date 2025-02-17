@@ -16,10 +16,10 @@ export const NodeLabel: React.FC<CustomNodeElementProps> = ({
     <React.Fragment>
      <div 
         className="slot relative z-10"
-        data-swapy-slot={`node-${nodeDatum.name}-slot`}
+        data-swapy-slot={`node-${nodeDatum.attributes?.id}-slot-${nodeDatum.attributes?.manager_id}`}
       >
         <div
-          data-swapy-item={`node-${nodeDatum.name}-item`}
+          data-swapy-item={`node-${nodeDatum.attributes?.id}-item-${nodeDatum.attributes?.manager_id}`}
           className="relative"
         >
             <Card 
