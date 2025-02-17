@@ -1,9 +1,10 @@
+import * as React from 'react'
+
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useDisclosure } from '@/hooks/useDisclosure'
 import { cn } from '@/lib/utils'
 import { GripVertical } from 'lucide-react'
-import * as React from 'react'
 import { CustomNodeElementProps } from 'react-d3-tree'
 
 export const NodeLabel: React.FC<CustomNodeElementProps> = ({

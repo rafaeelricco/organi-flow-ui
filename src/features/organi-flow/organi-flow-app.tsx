@@ -7,7 +7,7 @@ import { employeesMock } from '@/features/organi-flow/employees-mock'
 import { NodeLabel } from '@/features/organi-flow/node-label'
 import { useElementSize } from '@/hooks/useElementSize'
 import { fetcher } from '@/lib/fetcher'
-import { EmployeeEntity } from '@/types/employee'
+import { unBuildTree } from '@/utils/unbuild-tree'
 import { toast } from 'sonner'
 import { createSwapy, Swapy } from 'swapy'
 
@@ -159,23 +159,4 @@ export const OrgChartApp: React.FC = () => {
          </div>
       </div>
    )
-}
-
-function unBuildTree(tree: TreeNode): EmployeeEntity[] {
-   const employees: EmployeeEntity[] = []
-
-   function processNode(node: TreeNode, managerId: number | null) {
-      employees.push({
-         id: node.attributes.id,
-         name: node.name,
-         title: node.attributes.title,
-         manager_id: managerId
-      })
-      node.children?.forEach((child) => {
-         processNode(child, node.attributes.id)
-      })
-   }
-   processNode(tree, null)
-
-   return employees
 }
