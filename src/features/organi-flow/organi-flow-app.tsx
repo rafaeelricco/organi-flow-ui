@@ -70,7 +70,7 @@ export const OrgChartApp: React.FC = () => {
 
          swapyRef.current = createSwapy(containerRef.current, {
             animation: 'none',
-            dragAxis: 'both',
+            dragAxis: 'x',
             enabled: isEnabled
          })
 
