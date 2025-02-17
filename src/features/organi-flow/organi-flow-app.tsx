@@ -55,7 +55,7 @@ export const OrgChartApp: React.FC = () => {
       if (containerRef.current) {
          swapyRef.current = createSwapy(containerRef.current, {
             animation: 'none',
-            dragAxis: 'both'
+            dragAxis: 'x'
          })
 
          let fromId: number | undefined = undefined
@@ -100,6 +100,10 @@ export const OrgChartApp: React.FC = () => {
                      }
                   )
 
+                  if (!response1.ok) {
+                     throw new Error('Falha na primeira atualização')
+                  }
+
                   const response2 = await fetch(
                      `${process.env.NEXT_PUBLIC_API_URL}/update-employee-manager`,
                      {
@@ -112,10 +116,12 @@ export const OrgChartApp: React.FC = () => {
                      }
                   )
 
-                  if (!response1.ok || !response2.ok)
-                     throw new Error('Falha na atualização')
+                  if (!response2.ok) {
+                     throw new Error('Falha na segunda atualização')
+                  }
 
                   toast.success('Atualização bem-sucedida!')
+                  mutate()
                } catch (error) {
                   toast.error('Erro na atualização!')
                }
