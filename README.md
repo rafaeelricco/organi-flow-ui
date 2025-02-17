@@ -4,7 +4,7 @@
 
 **OrganiFlow** is an interactive platform for visualizing and managing organizational structures, ideal for companies of different sizes. The tool enables the creation, editing, and analysis of hierarchies through an intuitive interface with drag-and-drop features.
 
-Try it out: [Live Demo](https://organi-flow-ui.vercel.app)
+Try it out: <a href="https://organi-flow-ui.vercel.app" target="_blank">Live Demo</a>
 
 Main features:
 - Interactive hierarchical visualization
