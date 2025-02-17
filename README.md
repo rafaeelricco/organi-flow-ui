@@ -4,7 +4,7 @@
 
 Try it out: <a href="https://organi-flow-ui.vercel.app" target="_blank">Live Demo</a>
 
-Main features:
+## Main Features
 - Interactive hierarchical visualization
 - Management of positions and relationships between employees
 - Quick editing of information and structure
