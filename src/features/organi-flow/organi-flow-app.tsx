@@ -134,7 +134,7 @@ export const OrgChartApp: React.FC = () => {
       <div className="h-screen w-screen bg-white" ref={setRefs}>
          <div style={{ width: '100%', height: '100%' }}>
             {isLoading ? (
-               <div className="flex items-center justify-center h-full">
+               <div className="flex h-full items-center justify-center">
                   <EmployeeNodeSkeleton employee={employeesMock[0]} />
                </div>
             ) : (
